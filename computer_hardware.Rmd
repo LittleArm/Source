@@ -1,0 +1,306 @@
+---
+title: "Computer Hardware"
+author: "Khanh Le"
+date: "2023-04-18"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Bước 1: Load packages
+
+Chúng ta bắt đầu với việc cài đặt package. 
+
+(Trong trường hợp đã cài trước thì chúng ta có thể bỏ qua phần này)
+
+```{r}
+install.packages('plyr', repos = "http://cran.us.r-project.org")
+install.packages("dplyr", repos = "http://cran.us.r-project.org")
+install.packages("hrbrthemes", repos = "http://cran.us.r-project.org")
+install.packages("gganimate", repos = "http://cran.us.r-project.org")
+install.packages("gapminder", repos = "http://cran.us.r-project.org")
+install.packages("babynames", repos = "http://cran.us.r-project.org")
+install.packages("ggthemes", repos = "http://cran.us.r-project.org")
+install.packages("cowplot", repos = "http://cran.us.r-project.org")
+install.packages("ggplot2", repos = "http://cran.us.r-project.org")
+```
+
+Sau khi đã cài đặt xong, chúng ta có thể load các package bằng hàm `library()` 
+
+```{r}
+library(skimr)
+library(hrbrthemes)
+library(gganimate)
+library(gapminder)
+library(babynames)
+library(ggthemes)
+library(cowplot)
+library(ggplot2)
+library(dplyr)
+library(readr)
+```
+
+## Bước 2: Import data
+Tập dữ liệu được sử dụng trong bài tập lớn này là Computer Hardware Data Set (https://archive.ics.uci.edu/ml/datasets/Computer+Hardware).
+
+
+
+Dữ liệu có thể được download từ trang UCI Machine Learning Repository:
+https://archive.ics.uci.edu/ml/datasets/Computer+Hardware
+
+Sau khi đã tải về, ta có thể dùng hàm `read_csv()` để đọc dữ liệu từ file "machine.data" và lưu với tên `original_data` và đặt tên cho các cột dữ liệu .
+
+```{r}
+original_data <- read_csv("data/machine.data")
+names(original_data) <- c("vendor_name", "model_name", "MYCT", "MMIN", "MMAX", "CACH", "CHMIN", "CHMAX", "PRP", "ERP")
+```
+
+Dùng hàm `colnames()` để kiểm tra tên các cột dữ liệu:
+
+```{r}
+colnames(original_data)
+```
+
+## Bước 3: Tìm hiểu tập dữ liệu
+
+Trước khi làm sạch tập dữ liệu, chúng ta cần phải tìm hiểu nó.
+Sử dụng hàm `head()` để lấy ra 6 dòng đầu tiên:
+
+```{r}
+head(original_data)
+```
+
+Sử dụng hàm `str()` và `glimpse()` để có cái nhìn tổng quan hơn về dữ liệu:
+
+```{r}
+str(original_data)
+```
+
+```{r}
+glimpse(original_data)
+```
+
+Sử dụng hàm `skim_without_charts()`:
+
+```{r}
+skim_without_charts(original_data)
+```
+
+## Step 4: Cleaning your data
+
+Trích các thuộc tính cần sử dụng
+
+```{r}
+hardware_df <- original_data %>% 
+  select(MYCT, MMIN, MMAX, CACH, CHMIN, CHMAX, PRP, ERP)
+```
+
+Kiểm tra missing value
+
+```{r}
+hardware_df %>% sapply(function(col) sum(is.na(col)))
+```
+
+## Bước 5: Vẽ đồ thị
+
+Biểu đồ Histogram của Relative Performance
+
+```{r}
+options(repr.plot.width = 14, repr.plot.height = 6)
+
+x <- ggplot(data = hardware_df, mapping = aes(x = PRP)) +
+  geom_histogram(bins = 40, fill = "orange", color = "#FF0000") +
+  xlab("Relative performance") +
+  ylab("Frequency") +
+  ggtitle("Published Relative Performance Histogram") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 24, hjust = .5, face = "bold"),
+        axis.title.x = element_text(size = 24, hjust = .5, face = "italic"),
+        axis.title.y = element_text(size = 24, hjust = .5, face = "italic"),
+        axis.text.x = element_text(size = 15, face = "bold"),
+        axis.text.y = element_text(size = 15, face = "bold"),
+        legend.position = "none")
+
+x
+```
+
+Biểu đồ Histogram của Relative Performance
+
+```{r}
+hist1 <- ggplot(data = hardware_df, mapping = aes(x = MYCT)) +
+  geom_histogram(bins = 40, fill = "blue", color = "cyan") +
+  xlab("Machine Cycle Time (ns)") +
+  ylab("Frequency") +
+  ggtitle("Machine Cycle Time Histogram") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 8, hjust = .5, face = "bold"),
+        axis.title.x = element_text(size = 8, hjust = .5, face = "italic"),
+        axis.title.y = element_text(size = 8, hjust = .5, face = "italic"),
+        axis.text.x = element_text(size = 5, face = "bold"),
+        axis.text.y = element_text(size = 5, face = "bold"),
+        legend.position = "none")
+```
+Biểu đồ Histogram của Relative Performance
+
+```{r}
+hist2 <- ggplot(data = hardware_df, mapping = aes(x = MMIN)) +
+  geom_histogram(bins = 40, fill = "blue", color = "cyan") +
+  xlab("Minimum Main Memory Size (KB)") +
+  ylab("Frequency") +
+  ggtitle("Minimum Main Memory Histogram") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 8, hjust = .5, face = "bold"),
+        axis.title.x = element_text(size = 8, hjust = .5, face = "italic"),
+        axis.title.y = element_text(size = 8, hjust = .5, face = "italic"),
+        axis.text.x = element_text(size = 5, face = "bold"),
+        axis.text.y = element_text(size = 5, face = "bold"),
+        legend.position = "none")
+```
+Biểu đồ Histogram của Relative Performance
+
+```{r}
+hist3 <- ggplot(data = hardware_df, mapping = aes(x = MMAX)) +
+  geom_histogram(bins = 40, fill = "#00CED1", color = "#7FFF00") +
+  xlab("Maximum Main Memory Size (KB)") +
+  ylab("Frequency") +
+  ggtitle("Maximum Main Memory Histogram") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 8, hjust = .5, face = "bold"),
+        axis.title.x = element_text(size = 8, hjust = .5, face = "italic"),
+        axis.title.y = element_text(size = 8, hjust = .5, face = "italic"),
+        axis.text.x = element_text(size = 5, face = "bold"),
+        axis.text.y = element_text(size = 5, face = "bold"),
+        legend.position = "none")
+```
+Biểu đồ Histogram của Relative Performance
+
+```{r}
+hist4 <- ggplot(data = hardware_df, mapping = aes(x = CACH)) +
+  geom_histogram(bins = 40, fill = "#00CED1", color = "#7FFF00") +
+  xlab("Cache Size (KB)") +
+  ylab("Frequency") +
+  ggtitle("Cache Memory Histogram") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 8, hjust = .5, face = "bold"),
+        axis.title.x = element_text(size = 8, hjust = .5, face = "italic"),
+        axis.title.y = element_text(size = 8, hjust = .5, face = "italic"),
+        axis.text.x = element_text(size = 5, face = "bold"),
+        axis.text.y = element_text(size = 5, face = "bold"),
+        legend.position = "none")
+```
+Biểu đồ Histogram của Relative Performance
+
+```{r}
+hist5 <- ggplot(data = hardware_df, mapping = aes(x = CHMIN)) +
+  geom_histogram(bins = 40, fill = "#4B0082", color = "#FF00FF") +
+  xlab("Channels (units)") +
+  ylab("Frequency") +
+  ggtitle("Minimum Channels Histogram") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 8, hjust = .5, face = "bold"),
+        axis.title.x = element_text(size = 8, hjust = .5, face = "italic"),
+        axis.title.y = element_text(size = 8, hjust = .5, face = "italic"),
+        axis.text.x = element_text(size = 5, face = "bold"),
+        axis.text.y = element_text(size = 5, face = "bold"),
+        legend.position = "none")
+```
+Biểu đồ Histogram của Relative Performance
+
+```{r}
+hist6 <- ggplot(data = hardware_df, mapping = aes(x = CHMAX)) +
+  geom_histogram(bins = 40, fill = "#4B0082", color = "#FF00FF") +
+  xlab("Channels (units)") +
+  ylab("Frequency") +
+  ggtitle("Maximum Channels Histogram") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 8, hjust = .5, face = "bold"),
+        axis.title.x = element_text(size = 8, hjust = .5, face = "italic"),
+        axis.title.y = element_text(size = 8, hjust = .5, face = "italic"),
+        axis.text.x = element_text(size = 5, face = "bold"),
+        axis.text.y = element_text(size = 5, face = "bold"),
+        legend.position = "none")
+```
+Tổng hợp các biểu đồ Histogram:
+
+```{r}
+plot_grid(hist1, hist2, hist3, hist4, hist5, hist6, nrow = 3, ncol = 2)
+```
+## Bước 6: Thống kê dữ liệu
+Tính toán các giá trị thống kê: Mean, Median, Standard deivation, Min, Max
+
+```{r}
+means <- hardware_df %>% sapply(mean)
+medians <- hardware_df %>% sapply(median)
+sds <- hardware_df %>% sapply(sd)
+mins <- hardware_df %>% sapply(min)
+maxs <- hardware_df %>% sapply(max)
+summary <- as.data.frame(cbind(means, medians, sds, mins, maxs))
+names(summary) <- c("mean", "median", "sd", "min", "max")
+
+summary
+```
+
+## Bước 7: Chuẩn hóa dữ liệu
+
+Để chuẩn hóa dữ liệu và dự đoán chính xác, ta lấy logarit giá trị các cột dữ liệu
+```{r}
+hardware_df$MYCT <- log(hardware_df$MYCT)
+hardware_df$MMIN <- log(hardware_df$MMIN)
+hardware_df$MMAX <- log(hardware_df$MMAX)
+hardware_df$CACH <- log(hardware_df$CACH + 1)
+hardware_df$CHMIN <- log(hardware_df$CHMIN + 1)
+hardware_df$CHMAX <- log(hardware_df$CHMAX + 1)
+hardware_df$PRP <- log(hardware_df$PRP)
+```
+
+```{r}
+## hardware_df %>% cov() %>% as.data.frame()
+## hardware_df %>% cor() %>% as.data.frame()
+## hardware_df %>% pairs()
+## pairs(hardware_df)
+```
+## Bước 8: Mô hình hồi quy
+Xây dựng mô hình hồi quy
+```{r}
+linearModule <-lm(PRP~MYCT+MMIN+MMAX+CACH+CHMIN+CHMAX,data=hardware_df)
+summary(linearModule)
+```
+Kiểm tra các thông số mô hình
+```{r}
+#3.7.2
+linearModule$coefficients
+
+SSE <- (linearModule$residuals ^ 2) %>% sum()
+SSR <- ((linearModule$fitted.values - mean(hardware_df$PRP)) ^ 2) %>% sum()
+SST <- ((hardware_df$PRP - mean(hardware_df$PRP)) ^ 2) %>% sum()
+ss <- as.data.frame(c(SSE, SSR, SST), row.names = c("SSE", "SSR", "SST"))
+names(ss) <- c("Value")
+ss
+#3.7.3
+summary(linearModule)$sigma
+#3.7.4
+summary(linearModule)$adj.r.squared
+```
+Trực quan mô hình
+```{r}
+ggplot(data = hardware_df, aes(x = PRP, y = linearModule$fitted.values)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  xlab("Actual PRP") +
+  ylab("Predicted PRP") +
+  ggtitle("Actual vs Predicted PRP") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 8, hjust = .5, face = "bold"),
+        axis.title.x = element_text(size = 8, hjust = .5, face = "italic"),
+        axis.title.y = element_text(size = 8, hjust = .5, face = "italic"),
+        axis.text.x = element_text(size = 5, face = "bold"),
+        axis.text.y = element_text(size = 5, face = "bold"),
+        legend.position = "none")
+```
+
+
+
