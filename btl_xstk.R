@@ -169,3 +169,4 @@ ss
 summary(linearModule)$sigma
 #3.7.4
 summary(linearModule)$adj.r.squared
+

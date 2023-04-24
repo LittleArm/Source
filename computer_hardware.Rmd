@@ -96,7 +96,7 @@ Trích các thuộc tính cần sử dụng
 
 ```{r}
 hardware_df <- original_data %>% 
-  select(MYCT, MMIN, MMAX, CACH, CHMIN, CHMAX, PRP, ERP)
+  select(MYCT, MMIN, MMAX, CACH, CHMIN, CHMAX, PRP)
 ```
 
 Kiểm tra missing value
@@ -104,6 +104,7 @@ Kiểm tra missing value
 ```{r}
 hardware_df %>% sapply(function(col) sum(is.na(col)))
 ```
+Ta thấy không có mất mát dữ liệu
 
 ## Bước 5: Vẽ đồ thị
 
@@ -229,6 +230,7 @@ Tổng hợp các biểu đồ Histogram:
 ```{r}
 plot_grid(hist1, hist2, hist3, hist4, hist5, hist6, nrow = 3, ncol = 2)
 ```
+
 ## Bước 6: Thống kê dữ liệu
 Tính toán các giá trị thống kê: Mean, Median, Standard deivation, Min, Max
 
@@ -257,37 +259,64 @@ hardware_df$CHMAX <- log(hardware_df$CHMAX + 1)
 hardware_df$PRP <- log(hardware_df$PRP)
 ```
 
+Tính covariant, corelation giữa các biến
 ```{r}
-## hardware_df %>% cov() %>% as.data.frame()
-## hardware_df %>% cor() %>% as.data.frame()
-## hardware_df %>% pairs()
-## pairs(hardware_df)
+hardware_df %>% cov() %>% as.data.frame()
+hardware_df %>% cor() %>% as.data.frame()
+```
+Chúng ta vẽ biểu đồ pairwise scatterplots giữa các biến trong tập dữ liệu bằng biến `pairs`:
+Tham số `cex.labels` để xóa khoảng cách giữa subplots và giảm kích thước font.
+Tham số `mex` dùng để thu hẹp khoảng cách giữa các lề
+```{r}
+par(mex=0.5)
+pairs(hardware_df, gap=0, cex.labels=0.9)
 ```
 ## Bước 8: Mô hình hồi quy
+
 Xây dựng mô hình hồi quy
 ```{r}
-linearModule <-lm(PRP~MYCT+MMIN+MMAX+CACH+CHMIN+CHMAX,data=hardware_df)
-summary(linearModule)
+ln_model <-lm(PRP~MYCT+MMIN+MMAX+CACH+CHMIN+CHMAX,data=hardware_df)
+summary(ln_model)
 ```
 Kiểm tra các thông số mô hình
 ```{r}
 #3.7.2
-linearModule$coefficients
+ln_model$coefficients
 
-SSE <- (linearModule$residuals ^ 2) %>% sum()
-SSR <- ((linearModule$fitted.values - mean(hardware_df$PRP)) ^ 2) %>% sum()
+SSE <- (ln_model$residuals ^ 2) %>% sum()
+SSR <- ((ln_model$fitted.values - mean(hardware_df$PRP)) ^ 2) %>% sum()
 SST <- ((hardware_df$PRP - mean(hardware_df$PRP)) ^ 2) %>% sum()
 ss <- as.data.frame(c(SSE, SSR, SST), row.names = c("SSE", "SSR", "SST"))
 names(ss) <- c("Value")
 ss
-#3.7.3
-summary(linearModule)$sigma
-#3.7.4
-summary(linearModule)$adj.r.squared
+
 ```
+
+
+```{r}
+#3.7.3
+summary(ln_model)$sigma
+```
+
+#3.7.4
+```{r}
+summary(ln_model)$adj.r.squared
+```
+
+Bảng ANOVA cho mô hình hồi quy bội
+```{r}
+anova(ln_model)
+```
+Ta thấy p-value của các biến dự báo đều có giá trị nhỏ, hay các biến MYCT, MMIN, MMAX, CACH, CHMIN, CHMAX đều có ảnh hưởng đáng kể tới giá trị PRP. Trong đó, giá trị F-value lớn nhất thuộc về MYCT, tức là MYCT là biến có ảnh hưởng lớn nhất trong mô hình dự báo
+
+```{r}
+par(mfrow=c(2,2)) 
+plot(ln_model)
+```
+
 Trực quan mô hình
 ```{r}
-ggplot(data = hardware_df, aes(x = PRP, y = linearModule$fitted.values)) +
+ggplot(data = hardware_df, aes(x = PRP, y = ln_model$fitted.values)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE, color = "red") +
   xlab("Actual PRP") +
